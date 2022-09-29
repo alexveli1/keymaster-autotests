@@ -32,7 +32,7 @@ type KeyMasterSuite struct {
 // SetupSuite bootstraps suite dependencies
 func (suite *KeyMasterSuite) SetupSuite() {
 	suite.Host = "127.0.0.1"
-	suite.Port = "8081"
+	suite.Port = "8083"
 	suite.KeyMasterServerAddress = "http://" + suite.Host + ":" + suite.Port
 	suite.KeyMasterBinaryPath = "./keymaster"
 	suite.DatabaseUri = "postgres://user:1234567890qwerty@localhost:5432/astral"
@@ -41,13 +41,9 @@ func (suite *KeyMasterSuite) SetupSuite() {
 func (suite *KeyMasterSuite) serviceUp() {
 
 	{
-		envs := append(os.Environ(),
-			"RUN_ADDRESS="+suite.Host+":"+suite.Port,
-			"DATABASE_URI="+suite.DatabaseUri,
-		)
-
 		args := []string{
-			"--d=" + suite.DatabaseUri}
+			"--d=" + suite.DatabaseUri,
+			"--a=" + suite.Host + ":" + suite.Port}
 
 		p := fork.NewBackgroundProcess(context.Background(), suite.KeyMasterBinaryPath,
 			fork.WithArgs(args...),
@@ -58,7 +54,7 @@ func (suite *KeyMasterSuite) serviceUp() {
 
 		err := p.Start(ctx)
 		if err != nil {
-			suite.T().Errorf("Невозможно запустить процесс командой %s: %s. Переменные окружения: %+v", p, err, envs)
+			suite.T().Errorf("Невозможно запустить процесс командой %s: %s. Агументы запуска: %+v", p, err, args)
 
 			return
 		}
